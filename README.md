@@ -1,6 +1,6 @@
 <img src="http://imgur.com/1ZcRyrc.png" style="float: left; margin: 20px; height: 120px">
 
-# Before the Bubble Burst: Predicting Housing Prices in Ames, IA
+# A Fair Appraisal: Predicting Housing Prices in Ames, IA
 ### Fill out this cell as the project progresses, then move to README.md as technical report.
 
 *Deval Mehta*
@@ -18,7 +18,7 @@
 ## Overview
 Tax appraisals for properties provide a wealth of information regarding various aspects of the home, some of which the homeowners and prospective buyers may never even think about! Professor of Statistics Dane De Cock took advantage of this to create the Ames Housing Dataset for his Statistical Regression students, intended to be the focus of a capstone project. The question at hand is simple: considering all of the information available regarding the attributes of various homes listed for sale in Ames, IA in 2008, can we reliably predict the fair price of an additional 2008 Ames, IA listing?
 
-We employ linear regression to attempt to answer this question successfully, iteratively improving models as we go through data cleaning and exploration. Rather than cleaning all of our data at once, we consider the impact of various types of data on the model and aim to generate a model which predicts housing prices in the Ames of 2008 as reliably as possible. We set for ourselves a target margin of \\$20,000 which we were sadly unable to meet, but we believe it is possible with some additional time and work.
+We employ linear regression to attempt to answer this question successfully, iteratively improving models as we go through data cleaning and exploration. Rather than cleaning all of our data at once, we consider the impact of various types of data on the model and aim to generate a model which predicts housing prices in the Ames of 2008 as reliably as possible. We set for ourselves a target margin of \\$20,000 which we were sadly unable to meet, but we believe it is possible with some additional time and work. In principle, this work may be extended to analogous data from any locale in any year. Ideally, we would provide a tool by which homeowners may independently appraise the value of their home in preparation to list it.
 
 ## Data Dictionary
 
@@ -133,7 +133,7 @@ A prospective colleague or student interested in replicating our results or impr
 
 ## Executive Summary
 ### The Data
-Our goal is to predict the price of homes listed for sale in Ames, IA, given information about the properties in question. This is a much wider dataset than any with which we have previously worked. The data consists of 80 columns, ranging from zoning classification to the quality and condition of various parts of the home and exterior. As we progress with analysis and modeling, we may find that we have to engineer new features to build a more accurate predictive model.
+Our goal is to predict the price of homes listed for sale in Ames, IA, given information about the properties in question. This is a much wider dataset than any with which we have previously worked. The data consists of 80 columns, ranging from zoning classification to the quality and condition of various parts of the home and exterior. As we progress with analysis and modeling, we may find that we have to engineer new features to build a more accurate predictive model. Our models will be built on linear regression, perhaps with limited polynomial features, since we are interested in predicting the sale price, which is a quantitative feature.
 
 We identified some redundant information here, which allowed us to pare down the data a bit. The "overall" numbers are all aggregates or combinations of the individual values, so we can count them out in our analysis. We will also want to convert our "sliding scale" variables to a numeric data type, then convolve some of them. In particular, the area of something is likely to interact with its quality. There are many missing values in the data, as will be seen below. We want to reasonably impute as many of them as possible.
 
@@ -251,4 +251,4 @@ Now we come to the final pre-processing step and perhaps the one procedure that 
 Scaling appears to have made a slight amount of a difference, though not as much as we would have liked. Across all of our models, we have accounted for 80\% of the variability in the model with the features in the training set and consistently done better on the testing set. Were more time available, the next step would be to regularize using `LassoCV`.
 
 ### Next Steps
-Though we did attempt it, we were unable to successfully one-hot encode the non-ordinal catagorical features of our dataset. We would like to consider the impact of some of the salient categorical variables in a future model. In addition, time constraints did not permit the use of regularization techniques, which would likely be the final step, particularly employing LASSO regularlization, which would allow us to enter all of the features in the dataset and pare them down through regularization.
+Though we did attempt it, we were unable to successfully one-hot encode the non-ordinal catagorical features of our dataset. We would like to consider the impact of some of the salient categorical variables in a future model. In addition, time constraints did not permit the use of regularization techniques, which would likely be the final step, particularly employing LASSO regularlization, which would allow us to enter all of the features in the dataset and pare them down through regularization. When regularizing, we would likely also lean on `PolynomialFeatures` to study the impact of a greater number of interactions between features and feature self-interactions.
