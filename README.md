@@ -1,4 +1,3 @@
-<img src="http://imgur.com/1ZcRyrc.png" style="float: left; margin: 20px; height: 120px">
 
 # A Fair Appraisal: Predicting Housing Prices in Ames, IA
 
@@ -15,9 +14,11 @@
     4) [Next Steps](#Next-Steps)
 
 ## Overview
-Tax appraisals for properties provide a wealth of information regarding various aspects of the home, some of which the homeowners and prospective buyers may never even think about! Professor of Statistics Dane De Cock took advantage of this to create the Ames Housing Dataset for his Statistical Regression students, intended to be the focus of a capstone project. The question at hand is simple: considering all of the information available regarding the attributes of various homes listed for sale in Ames, IA in 2008, can we reliably predict the fair price of an additional 2008 Ames, IA listing?
+Tax appraisals for properties provide a wealth of information regarding various aspects of the home, some of which the homeowners and prospective buyers may never even consider! Professor of Statistics Dane De Cock took advantage of this to create the Ames Housing Dataset for his Statistical Regression students, intended to be the focus of a capstone project. The question at hand is simple: considering all of the information available regarding the attributes of various homes listed for sale in Ames, IA around 2008, can we reliably predict the fair price of an additional 2008 Ames, IA listing?
 
 We employ linear regression to attempt to answer this question successfully, iteratively improving models as we go through data cleaning and exploration. Rather than cleaning all of our data at once, we consider the impact of various types of data on the model and aim to generate a model which predicts housing prices in the Ames of 2008 as reliably as possible. We set for ourselves a target margin of \\$20,000 which we were sadly unable to meet, but we believe it is possible with some additional time and work. In principle, this work may be extended to analogous data from any locale in any year. Ideally, we would provide a tool by which homeowners may independently appraise the value of their home in preparation to list it.
+
+This project was completed as part of an internal Kaggle competition
 
 ## Data Dictionary
 
@@ -174,7 +175,7 @@ There appears to be no easily apparent "cutoff" for what we might consider to be
 
 <img src = ./images/elbow_method.png>
 
-Ignoring the initial "elbow" at `Overall Qual` which occurs for the obvious reason of nothing correlating as well to `SalePrice` as it does to itself, we have a very "early elbow" at the `Garage Area` feature, but we can imagine that a multiple linear regression model using only three features from a set of 79 would likely be terribly underfit. Instead, we look for our second "elbow," which we identify at the `BsmtFin SF 1` feature, denoting the area of the "1st" finished part of the basement. Note the steep descent from this feature to `Lot Frontage`. Choosing this to be the cutoff for our first multiple linear regression model provides us with 14 features of 79 to play with. Normally, we would seek another "elbow" to filter for strongly anti-correlated features, but seeing as the mostly highly anti-correlated feature has a correlation coefficient of -0.26 (compare that against the 0.42 for our "strong" cutoff), that seems unnecessary here. Incidentally, the only features in our restricted list with null values are now:
+Ignoring the initial "elbow" at `Overall Qual` which occurs because nothing correlates as well to `SalePrice` as it does to itself, we have a very "early elbow" at the `Garage Area` feature, but we can imagine that a multiple linear regression model using only three features from a set of 79 would likely be terribly underfit. Instead, we look for our second "elbow," which we identify at the `BsmtFin SF 1` feature, denoting the area of the "1st" finished part of the basement. Note the steep descent from this feature to `Lot Frontage`. Choosing this to be the cutoff for our first multiple linear regression model provides us with 14 features of 79 to play with. Normally, we would seek another "elbow" to filter for strongly anti-correlated features, but seeing as the mostly highly anti-correlated feature has a correlation coefficient of -0.26 (compare that against the 0.42 for our "strong" cutoff), that seems unnecessary here. Incidentally, the only features in our restricted list with null values are now:
 * `Garage Area`
 * `Garage Cars`
 * `Total Bsmt SF`
