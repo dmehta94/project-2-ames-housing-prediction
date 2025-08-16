@@ -1,7 +1,6 @@
 <img src="http://imgur.com/1ZcRyrc.png" style="float: left; margin: 20px; height: 120px">
 
 # A Fair Appraisal: Predicting Housing Prices in Ames, IA
-### Fill out this cell as the project progresses, then move to README.md as technical report.
 
 *Deval Mehta*
 
