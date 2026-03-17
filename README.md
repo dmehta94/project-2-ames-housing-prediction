@@ -1,254 +1,139 @@
+# Before the Bubble Burst: Predicting Housing Prices in Ames, IA
 
-# A Fair Appraisal: Predicting Housing Prices in Ames, IA
+**Author:** Deval Mehta &nbsp;|&nbsp; **Context:** General Assembly Data Science Bootcamp — Project 2 &nbsp;|&nbsp; **Stack:** Python, pandas, scikit-learn, seaborn, NumPy
 
-*Deval Mehta*
+---
 
-## Table of Contents
-1) [Overview](#Overview) 
-2) [Data](#Data-Dictionary)
-3) [Requirements](#Requirements)
-4) [Executive Summary](#Executive-Summary)
-    1) [Purpose](#Purpose)
-    2) [Methods](#Methods)
-    3) [Findings](#Findings)
-    4) [Next Steps](#Next-Steps)
+## What It Does
 
-## Overview
-Tax appraisals for properties provide a wealth of information regarding various aspects of the home, some of which the homeowners and prospective buyers may never even consider! Professor of Statistics Dane De Cock took advantage of this to create the Ames Housing Dataset for his Statistical Regression students, intended to be the focus of a capstone project. The question at hand is simple: considering all of the information available regarding the attributes of various homes listed for sale in Ames, IA around 2008, can we reliably predict the fair price of an additional 2008 Ames, IA listing?
+This project builds and iteratively improves a set of linear regression models to predict residential sale prices in Ames, Iowa using the Ames Housing Dataset — an 80-feature dataset compiled from tax appraisals circa 2008. Starting from a single-feature baseline, I work through native numeric features, ordinal encoding of quality scales, engineered interaction terms, and feature scaling, documenting each modeling decision and its measured impact on predictive accuracy. The final model achieves an RMSE of approximately $32,000 against a $20,000 target — a meaningful result that surfaces exactly where more sophisticated methods are needed next.
 
-We employ linear regression to attempt to answer this question successfully, iteratively improving models as we go through data cleaning and exploration. Rather than cleaning all of our data at once, we consider the impact of various types of data on the model and aim to generate a model which predicts housing prices in the Ames of 2008 as reliably as possible. We set for ourselves a target margin of \\$20,000 which we were sadly unable to meet, but we believe it is possible with some additional time and work. In principle, this work may be extended to analogous data from any locale in any year. Ideally, we would provide a tool by which homeowners may independently appraise the value of their home in preparation to list it.
+**Example output:** True vs. predicted sale price scatter plots with an equality line, generated at each modeling stage to visually diagnose residual patterns.
 
-This project was completed as part of an internal Kaggle competition
+---
 
-## Data Dictionary
+## Why I Built This
 
-### Original Features
-The original dataset contains 79 non-index, non-price features, each introducing a different piece of information regarding a listing.
+**Context:** This was Project 2 of the General Assembly Data Science Bootcamp, completed as part of an internal Kaggle competition with my cohort. The project was assigned partway through the bootcamp, at the point where we had covered linear regression, basic feature engineering, and exploratory data analysis — but not yet regularization, cross-validation at scale, or tree-based models. The goal was to show how far careful feature selection and incremental preprocessing could take a linear model.
 
-| Variable | Data Type | Description | Notes |
-|---|---|---|---|
-| MS SubClass | `int64` | The classification of the building | Codified to numbers; see the original data documentation for the cipher |
-| MS Zoning | `string` | General zoning classification of the sale | Codified into strings; see the original data documentation for the cipher |
-| Lot Frontage | `float64` | Linear feet of street connected to the property | |
-| Lot Area | `int64` | Lot size in square feet | |
-| Street | `string` | Type of road access to property | Gravel or Paved |
-| Alley | `string` | Type of alley access to property | Gravel or Paved |
-| Lot Shape | `string` | General shape of property | Degree of irregularity |
-| Land Contour | `string` | Flatness of the property | Level, Banked, Hillside, or Low Depression |
-| Utilities | `string` | Type of utilities available | Electric, Gas, Water, Sewer |
-| Lot Config | `string` | Lot Configuration | Where on a block or in a neighborhood the lot lands |
-| Land Slope | `string` | Slope of the property | Categorized from "gentle" to "severe" |
-| Neighborhood | `string` | Physical locations within Ames city limits | |
-| Condition 1 | `string` | Proximity to main road or railroad | |
-| Condition 2 | `string` | Proximity to main road or railroad | if a second is present |
-| Bldg Type | `string` | Type of dwelling | More modern classification than MS SubClass |
-| House Style | `string` | Style of dwelling | Number of stories |
-| Overall Qual | `int64` | Overal material and finish quality | Scale 1 - 10 |
-| Overall Cond | `int64` | Overall condition rating | Scale 1 - 10 |
-| Year Built | `int64` | Original construction date | |
-| Year Remod/Add | `int64` | Remodel date | Same as construction date if no remodeling or additions |
-| Roof Style | `string` | Type of roof | |
-| Roof Matl | `string` | Roofing material | |
-| Exterior 1st | `string` | Exterior covering on house | |
-| Exterior 2nd | `string` | Exterior covering on house | if more than one material |
-| Mas Vnr Type | `string` | Masonry veneer type | |
-| Mas Vnr Area | `int64` | Masonry veneer area | |
-| Exter Qual | `string` | Exterior material quality | Scale Poor to Excellent (six grades) |
-| Exter Cond | `string` | Present condition of the material on the exterior | Same grading system as Exter Qual |
-| Foundation | `string` | Type of foundation | |
-| Bsmt Qual | `string` | Height of basement | |
-| Bsmt Cond | `string` | General condition of basement | |
-| Bsmt Exposure | `string` | Walkout or garden level basement walls | |
-| BsmtFin Type 1 | `string` | Quality of basement finished area | |
-| BsmtFin SF 1 | `int64` | Type 1 finished square footage | |
-| BsmtFin Type 2 | `string` | Quality of second finished area (if present) | |
-| BsmtFin SF 2 | `string` | Type 2 finished square feet | |
-| Bsmt Unf SF | `int64` | Unfinished square feet of basement area | |
-| Total Bsmt SF | `int64` | Total square feet of basement area | |
-| Heating | `string` | Type of heating | |
-| Heating QC | `string` | Heating quality and condition | |
-| Central Air | `string` | Central air conditioning | |
-| Electrical | `string` | Electrical system | |
-| 1st Flr SF | `int64` | First floor square footage | |
-| 2nd Flr SF | `int64` | Second floor square footage | if it exists |
-| Low Qual Fin SF | `int64` | Low quality finished square footage | all floors |
-| Gr Liv Area | `int64` | Above grade living area square footage | |
-| Bsmt Full Bath | `int64` | Number of basement full bathrooms | |
-| Bsmt Half Bath | `int64` | Number of basement half bathrooms | |
-| Bedroom AbvGr | `int64` | Number of bedrooms above grade | |
-| Kitchen AbvGr | `int64` | Number of kitchens above grade | |
-| Kitchen Qual | `string` | Kitchen quality | |
-| TotRms AbvGr | `int64` | Total rooms above grade | does not include bathrooms |
-| Functional | `string` | Home functionality rating | |
-| Fireplaces | `int64` | Number of fireplaces | |
-| Fireplace Qu| `string` | Fireplace quality | |
-| GarageType | `string` | Garage type and location | |
-| Garage Yr Blt | `float64` | Year garage was built | |
-| Garage Finish | `string` | Interior finish of the garage | |
-| Garage Cars | `int64` | Car capacity of garage | |
-| Garage Area | `int64` | Square footage of garage | |
-| Garage Qual | `string` | Garage quality | |
-| Garage Cond | `string` | Garage condition | |
-| Paved Drive | `string` | Paved driveway | |
-| Wood Deck SF | `int64` | Wood deck area in square feet | |
-| Open Porch SF | `int64` | Open porch area in square feet | |
-| 3Ssn Porch | `int64` | Three season porch area in square feet | |
-| Screen Porch | `int64` | Screen porch area in square feet | |
-| Pool Area | `int64` | Pool area in square feet | |
-| Pool QC | `string` | Pool quality | |
-| Fence | `string` | Fence quality | |
-| Misc Feature | `string` | Miscellaneous feature not covered in other categories | |
-| Misc Val | `int64` | Dollar value of miscellaneous feature | |
-| Mo Sold | `int64` | Month sold | |
-| Yr Sold | `int64` | Year sold | |
-| Sale Type | `string` | Type of sale | |
-| Sale Price | `int64` | The property's sale price in dollars | This is our response variable for our models |
+**Problem:** The Ames Housing Dataset is a deliberately messy, real-world dataset — 79 features, abundant missing values, a mix of numeric, ordinal, and nominal categorical variables, and non-trivial multicollinearity. A naive approach of just throwing numeric features at a LinearRegression model produces something, but the interesting question is *how much* systematic feature engineering can move the needle before you need a fundamentally different algorithm.
 
-### Engineered Features
-| Variable | Data Type | Description | Notes |
-|---|---|---|---|
-| Kitchen Exter Qual | `float64` | Interaction between the exterior and kitchen quality features | |
-| Fireplace Index | `float64` | Product of the number of fireplaces and the fireplace quality in a given home | |
-| Garage Space | `float64` | Product of the number of cars that fit in a garage and the area of the garage in square feet | |
+**Solution approach:** I treated the project as a controlled experiment rather than a one-shot model build. Each modeling stage adds exactly one new preprocessing decision — first native numerics, then ordinal encoding, then interaction terms, then scaling — so the marginal impact of each choice is measurable. I used RMSE as the primary evaluation metric (it's in the same units as sale price, making results interpretable) alongside R² to track overfitting.
 
-## Requirements
-To replicate our analysis and predictive modeling, the following modules are necessary:
+**Results:** The best model achieved an expected Kaggle RMSE of approximately $32,000 — better than the ~$35,000 baseline but short of the $20,000 target. The persistent ~80% R² across all model iterations was the key insight: the ceiling wasn't model complexity, it was feature representation. One-hot encoding of neighborhood and building type, logarithmic transformation of sale price, and regularization (Lasso/Ridge) were the logical next steps — all of which I documented as explicit next steps.
 
+---
 
-| Library | Module | Purpose |
-|---|---|---|
-| `numpy` | | Ease of basic aggregate operations on data |
-| `pandas` | | Read our data into a DataFrame, clean it, engineer new features, and write it out to submission files |
-| `matplotlib` | `pyplot` | Basic plotting functionality |
-| `sklearn` | `compose` | Column transformation |
-| `sklearn` | `impute` | Imputation methods |
-| `sklearn` | `linear_model` | to write SLR and MLR models |
-| `sklearn` | `metrics` | Evaluate our models |
-| `sklearn` | `model_selection` | Perform train-test splitting |
-| `sklearn` | `preprocessing` | Data preprocessing and feature engineering tasks |
-| `seaborn` | | More control over plots |
-| `warnings` | | Suppress many of the warnings `pandas` flags in response to things like using `inplace` arguments |
+## What I Learned
 
-A prospective colleague or student interested in replicating our results or improving upon them would also require access to the [Ames Housing Dataset by Dean de Cock](https://www.kaggle.com/datasets/prevek18/ames-housing-dataset). In our case, we have saved this data within the `datasets` directory, split into the [train](../datasets/'train.csv') and [test](../datasets/test.csv) files.
+**Technical skills**
+- Ordinal encoding of quality-scale categorical features using custom mapping dictionaries — a cleaner alternative to one-hot encoding for ordered categorical data
+- Adapting the elbow method (from PCA) to correlation coefficient plots for feature selection — a practical heuristic when there's no obvious threshold
+- Multicollinearity detection combining heatmaps with pairwise scatter plots, and making principled decisions about which of a collinear pair to retain
+- Manually engineering interaction terms by multiplying feature pairs (e.g., `Fireplace Qu * Fireplaces`) to capture joint effects that linear models can't represent individually
+- StandardScaler workflow: fit on training data only, then transform both train and test — a discipline I got wrong on my first pass (see Limitations)
 
-## Executive Summary
-### The Data
-Our goal is to predict the price of homes listed for sale in Ames, IA, given information about the properties in question. This is a much wider dataset than any with which we have previously worked. The data consists of 80 columns, ranging from zoning classification to the quality and condition of various parts of the home and exterior. As we progress with analysis and modeling, we may find that we have to engineer new features to build a more accurate predictive model. Our models will be built on linear regression, perhaps with limited polynomial features, since we are interested in predicting the sale price, which is a quantitative feature.
+**Data science insights**
+- The ~80% R² ceiling across all modeling stages was the project's most useful finding. Incremental improvements shrank RMSE by roughly $500–$1,500 per stage, but the persistent tail of high-value underestimates pointed to a structural issue: high-end homes have characteristics that linear combinations of these features can't capture without transforming the target or introducing nonlinearity
+- Scaling had less impact than I expected. Standard scaling doesn't change the predictions of OLS linear regression with fixed features — it only affects the coefficient magnitudes. The visual improvement I anticipated was more about reducing feature scale disparities than fundamentally improving the model
+- The one-hot encoding attempt failed due to a column alignment mismatch between the training and validation sets after `pd.get_dummies()`. This is a classic real-world gotcha: `get_dummies()` applied separately to two DataFrames with different category distributions produces different columns. The fix (using `sklearn`'s `OneHotEncoder` within a pipeline) was the right approach but ran out of time
 
-We identified some redundant information here, which allowed us to pare down the data a bit. The "overall" numbers are all aggregates or combinations of the individual values, so we can count them out in our analysis. We will also want to convert our "sliding scale" variables to a numeric data type, then convolve some of them. In particular, the area of something is likely to interact with its quality. There are many missing values in the data, as will be seen below. We want to reasonably impute as many of them as possible.
+**Software engineering practices**
+- During standardization (post-bootcamp), I replaced all `inplace=True` calls with explicit assignment — a subtler point than it looks, since `inplace` doesn't guarantee efficiency and actively obscures what the operation returns
+- Reproducibility discipline: most of my `train_test_split` calls lacked a `random_state`, making results non-reproducible run to run. I've since added this consistently in subsequent projects
 
-Regarding the missing values, it seems many of the categorical features have been encoded as "NA" to mean that no relevant property exists. This will be relatively easy to impute if we have a common way to refer to such an incident in mind that cannot be overwritten by a null-type.
+**Unexpected learnings**
+- The StandardScaler data leakage bug I found post-bootcamp: I applied `fit_transform()` to both the training and test sets instead of `fit_transform()` on train and `transform()` on test only. The test set effectively used its own mean and standard deviation rather than the training set's, which slightly inflated the apparent test performance. The effect was small given the similar distributions, but it's the kind of mistake that matters at scale or with smaller samples
+- Removing rows with null values in the training set while imputing zeros in the validation set is an asymmetric and somewhat arbitrary treatment. In production, the right answer is a fitted imputer applied consistently to both splits — which the code imports but doesn't actually use for this purpose
 
-### Establishing a Baseline
-We create a baseline prediction before considering anything else about the data. We see that one of our features is `Overall Quality`, which is likely an aggregate of all of the other `quality` features in the dataset. We have already generated a baseline relying on this feature as the only predicate in breakfast hour, which we add here for completeness. To ensure that the baseline is the same across the cohort, we select a random seed here.
+---
 
-Our baseline does not perform remarkably well, with an $R^2$ of about 0.63 on the training data, suggesting that only 63\% of the variability in the data can be accounted for due to the features of the training set. That said, the model is not overfit, as the testing $R^2$ is comparable to the testing $R^2$.
+## Quick Start
 
-### Native Numeric Variables - A Preliminary Model
+This project was built before I adopted virtual environment conventions, so there's no `requirements.txt`. The dependencies are standard data science libraries available via pip or conda.
 
-Broadly speaking the features can be split into 12 groups, based on the information in the data dictionary, which provide insights into similar or related aspects of a given house:
+```bash
+# Clone the repository
+git clone https://github.com/dmehta94/project-2-ames-housing-prediction.git
+cd project-2-ames-housing-prediction
 
-* Identifying Information and Access (ID, PID, Lot Frontage, Street, Alley) - These will likely have very little impact on housing prices
-* Building Classification (MS SubClass, Bldg Type, House Style, Year Built, Year Remodeled, Roof Style)
-* Lot (Lot Area, Lot Shape, Land Contour, Lot Config, Land Slope)
-* Location (Neighborhood, Condition 1, Condition 2)
-* General (Overall Quality, Overall Condition)
-* Exterior (Exterior 1st, Exterior 2nd, Exterior Quality, Exterior Condition, Paved Driveway, Miscellaneous Feature, Miscellaneous Value)
-* Structure (Type of Foundation, Roof Material, Masonry Veneer Type, Masonry Veneer Area, Utilities, Heating, Heating Quality, Central Air, Electrical)
-* Basement (Basement Quality, Basement Condition, Basement Exposure, Basement Finish Type 1, Basement Finish Type 2, Basement Square Footage Type 1, Basement Square Footage Type 2, Basement Unfinished Square Footage, Total Basement Square Footage)
-* Rooms Above Grade (Total Rooms Above Grade, Bedrooms Above Grade, Kitchens Above Grade, Kitchen Quality)
-* Fireplaces (Fireplaces, Fireplace Quality)
-* Garages (Garage Type, Garage Year Built, Garage Finish, Garage Cars, Garage Area, Garage Quality, Garage Condition)
-* Yard (Wood Deck Square Footage, Open Porch Square Footage, 3 Season Porch, Screen Porch, Pool Area, Pool Quality)
+# Install dependencies (in a virtual environment of your choice)
+pip install numpy pandas matplotlib seaborn scikit-learn jupyter
 
-We will check how well many features correlate to our desired response (price), but before we do that, we can pare down the data a bit. The "quality" and "condition" features where they both exist are likely to provide the same information about an attribute. As such, we can maintain on the condition features and process them as numeric types, translating the "sliding scale" of strings to a 0-5 scale of ints. Where required, we can adjust the top end of the scale to be the number of available options.
+# Launch the notebook
+jupyter notebook code/Project-2-Deval.ipynb
+```
 
-Before we can do that, we will have to change all the "NA" entries. The consequences of simply dropping the data are catastrophic. The same is true of the testing data. We will have to selectively drop columns and impute otherwise. To minimize the number of columns we need to drop, let's first impute where we can. We'll replace the NaNs in categorical columns with the initialism "NV" for "No Value." That should get around the encoding issue present.
+**Dataset:** The Ames Housing Dataset is required but not included in this repository due to its original Kaggle competition context. Download the `train.csv` and `test.csv` files from the [Ames Housing Dataset on Kaggle](https://www.kaggle.com/datasets/prevek18/ames-housing-dataset) and place them in the `datasets/` directory.
 
-In order to effectively impute the data, we will have to treat categorical and numerical variables separately. There are only three different data types present in the data: `int64`, `float64`, and `object`. We can filter the data frame by `object` type columns to gather all the categorical data and impute it before transforming the "condition" columns as we previously mentioned. We should also impute the testing data whenever we impute the training data, to ensure that our predictions remain accurate. If the withheld "secret" data is not cleaned, we expect our score to be worse than would be accurate, as a validation algorithm would not necessarily clean data the way we are.
+**Directory structure:**
+```
+project-2-ames-housing-prediction/
+├── code/
+│   └── Project-2-Deval.ipynb    # Main analysis notebook
+├── datasets/                     # train.csv and test.csv (not included)
+├── images/                       # Generated plots (saved by notebook)
+├── outputs/                      # Kaggle submission CSVs
+└── README.md
+```
 
-Since we're interested in performing a predictive analysis via linear regression, we ought to clean up the numerical variables as well. While we do that, we can do some preliminary EDA to see which variables we might pick for our first analysis, beyond a baseline. Let's have a look at the "state of the NaNs." 11 of our numeric columns contain null values. With this information, let's do some initial EDA to see how well each of the numeric variables (as they are) correlate to `SalePrice`. We can use this information to decide whether it might be worth imputing null-values in some of these columns. To check, we'll create a heatmap, much like we did in Lesson 305: Model Workflow.
+---
 
-<img src = ./images/preliminary_saleprice_heatmap.png>
+## Sample Output
 
-There appears to be no easily apparent "cutoff" for what we might consider to be highly correlated. We can take a token from Principal Component Analysis (thanks to DSB Lead Instructor Matt Brems for mentioning this well in advance of our PCA lesson) to determine which features are worth considering for a regression analysis. The "elbow method" advocates plotting the features (sorted by correlation) on line plot or bar chart and identifying sharp drops between items. Where "the elbow bends," we would call our cutoff.
+The notebook generates a series of true-vs-predicted scatter plots at each modeling stage, overlaid with the line of equality. Early models show a pronounced curved tail at the high end — high-value homes are systematically underestimated — that persists through scaling, confirming that a log-transform of the target would be the right next step.
 
-<img src = ./images/elbow_method.png>
+Kaggle public leaderboard RMSE by submission:
 
-Ignoring the initial "elbow" at `Overall Qual` which occurs because nothing correlates as well to `SalePrice` as it does to itself, we have a very "early elbow" at the `Garage Area` feature, but we can imagine that a multiple linear regression model using only three features from a set of 79 would likely be terribly underfit. Instead, we look for our second "elbow," which we identify at the `BsmtFin SF 1` feature, denoting the area of the "1st" finished part of the basement. Note the steep descent from this feature to `Lot Frontage`. Choosing this to be the cutoff for our first multiple linear regression model provides us with 14 features of 79 to play with. Normally, we would seek another "elbow" to filter for strongly anti-correlated features, but seeing as the mostly highly anti-correlated feature has a correlation coefficient of -0.26 (compare that against the 0.42 for our "strong" cutoff), that seems unnecessary here. Incidentally, the only features in our restricted list with null values are now:
-* `Garage Area`
-* `Garage Cars`
-* `Total Bsmt SF`
-* `Garage Yr Blt`
-* `Mas Vnr Area`
-* `BsmtFin SF 1`
+| Model | Kaggle RMSE |
+|---|---|
+| Baseline (Overall Qual only) | $81,146 |
+| Native numeric features (14) | $45,278 |
+| + Ordinal quality features | $33,851 |
+| + Interaction terms | $32,484 |
+| + Scaling | $32,484 |
 
-Thankfully, most of these have only 1 null value, so we will be able to identify the relevant rows and impute them as necessary.
+The largest single improvement came from moving beyond the baseline to a 14-feature numeric model — a $36,000 drop in RMSE. Ordinal encoding and interaction terms each closed the gap further, though with diminishing returns. Scaling had no effect whatsoever, which is exactly what the theory predicts: OLS linear regression is mathematically scale-invariant with a fixed feature set, so standard scaling cannot change predictions.
 
-The null values in our columns of interest are not isolated, as they have other corresponding information. For instance, listing 910201180 has a detached garage, with negligible information regarding it available. In a situation like this, our best option is to assume that the missing data falls within the expectation of our eventual model and simply delete it: we will *hope* that it is Missing Completely at Random (MCAR). In fact, in the interest of time and producing a preliminary model, we will simply remove all of the rows with a null value in any of our columns of interest. Note that we **cannot** do this for our testing data. Kaggle submissions require that there are precisely 878 rows of data, so we must impute the validation data. In the interest of time, we will impute each missing numerical values with 0, but ideally, we would have instantiated and used Simple Imputation to replace the missing values with the mean, assuming that the validation set is also MCAR.
+---
 
-We've already fit our baseline model to a simple linear regression. This preliminary multiple linear regression model aims to predict the price of a house for sale in Ames using only the native numeric columns in the dataset. We perform a train-test split to generate this prediction. Ideally we would have liked to use k-fold cross validation with the typical 5 folds and shuffling. We could have refined our model further by attempting to optimize over the number of folds.
+## Technical Details
 
-According to our $R^2$ scores, roughly 80% of the variability in the data can be explained by our features and our model is relatively well-fit, since the testing and training $R^2$ scores are similar (the difference of the two is less than $10\%$ of the training $R^2$ score.
+**Stack:** Python 3, pandas, NumPy, scikit-learn, Matplotlib, Seaborn
 
-We would expect that this model will score around 35,000 on Kaggle, meaning that the prices predicted per house will be within $35,000 of the true value. Considering housing prices in 2008, this falls within 10% to 35% of the middle 50% of homes [citation needed]. Let's consider this visually as well.
+**Modeling approach:** Ordinary least squares linear regression (`sklearn.linear_model.LinearRegression`) with train-test split evaluation. No cross-validation (time constraint noted in the notebook).
 
-<img src = ./images/preliminary_true_vs_predicted.png>
+**Key preprocessing decisions:**
 
-As we can see, most of our value-prediction pairs lie quite close to the line of equality. In principle, we could happily stop here, but we know we can do better. Let's make our Kaggle submission and consider a more robust model.
+- *Missing value imputation:* Categorical NaNs replaced with `"NV"` (no value) string before ordinal encoding. Numeric NaN rows dropped from training data after confirming which rows contain nulls; validation set NaNs replaced with 0 (expedient, not ideal — see Limitations)
+- *Ordinal encoding:* 13 quality/condition features mapped to integer scales (0–5 for most; custom scales for `Bsmt Exposure` and `BsmtFin Type 1/2`)
+- *Feature selection:* Elbow method applied to a sorted correlation plot against `SalePrice`, yielding a 14-feature numeric candidate set before ordinal features were added
+- *Multicollinearity:* Collinear pairs identified via heatmap (|r| > 0.7) and confirmed visually; one feature dropped per pair (e.g., `Total Bsmt SF` dropped in favor of `1st Flr SF`)
+- *Interaction terms:* Three engineered features — `Kitchen Exter Qual`, `Fireplace Index`, `Garage Space` — capturing joint effects of quality × presence or area × capacity
 
-### Preparing a More Robust Model
+**Key functions and structure:** The notebook is procedural rather than modular — appropriate for a bootcamp analytical notebook. Each modeling stage is self-contained: define features, split, fit, score, visualize, submit.
 
-Let us return to the *ordinal* categorical features. Rather than one-hot encoding all of the categorical features, we see that many of them are "sliding scales." In particular, we turn our attention to `Exter Qual`, `Exter Cond`, `Bsmt Qual`, `Bsmt Cond`, `Bsmt Exposure`, `BsmtFin Type 1`, `BsmtFin Type 2`, `Heating QC`, `Kitchen Qual`, `Fireplace Qu`, `Garage Qual`, `Garage Cond`, and `Pool QC`. Most of these features scale from "NV" (no value) to "Ex" (Excellent). We define a dictionary, as we did in breakfast hour on Friday, to convert all of these to numerical data types so that we might use them to build another model that (we hope) will perform better. We note that three of our ordinal features still have a different scale than the rest: `Bsmt Exposure`, `BsmtFin Type 1`, `BsmtFin Type 2`. As such, we will have to determine their possible values. Let us inspect the available values on these columns and create new ordinal mappings accordingly.
+---
 
-Each of these "quality" features likely contribute to the `Overall Qual` feature and we can imagine that the "condition" features is practically colinear to the quality feature to which it corresponds. To verify, let us create another heatmap against `Overall Qual`
+## Limitations
 
-<img src = ./images/quality_heatmap.png>
+- **The $20,000 RMSE target was not achieved.** The gap between ~$32,000 and $20,000 is real and points to what's missing: one-hot encoding of neighborhood and building type, a logarithmic transformation of `SalePrice` to handle the right skew, and regularization (LassoCV) to handle the increased feature dimensionality that would follow
+- **One-hot encoding failed.** The `pd.get_dummies()` approach produced column misalignment between the training and validation sets, since different category values appeared in each. The correct solution is `sklearn`'s `OneHotEncoder` in a pipeline — imported but not implemented due to time
+- **Data leakage in the scaling section.** I applied `fit_transform()` to both training and test sets instead of fitting only on training. The effect on results was small given similar distributions, but this is corrected in the standardized version of the notebook
+- **No cross-validation.** Train-test split with a single random seed leaves results somewhat sensitive to the split. KFold CV (5 folds) would produce more stable RMSE estimates
+- **Asymmetric null treatment.** Dropping null rows from training data while zero-imputing the validation set creates an inconsistency. A fitted `SimpleImputer` applied to both would be the correct approach
+- **Logarithmic regression section is incomplete.** The final notebook section ("Taming the Tail") was started but not finished due to competition time constraints. The empty code cell is preserved as-is for historical accuracy
 
-As we might suspect, the features that are present in most Ames homes (an exterior, a kitchen, and a basement) have quality ratings that contribute heavily to the overall quality, but the remaining features (anti)correlate weakly. Perhaps we may *not* have expected that the conditions deteriorate as the quality improves. We suspect something is going wrong here, so will neglect the condition features in our analysis for the sake of time. 
+---
 
-We can now construct a new model based on the native numeric features we isolated earlier, along with the ordinal features that strongly correlate to `Overall Qual`. To avoid colinearity issues, we will exclude `Overall Qual`. Further, we should consider this time whether any of of the features we have selected are correlated with each other. To check, we will consider both a heatmap of correlations and a pairplot.
+## Credits
 
-<img src = ./images/num_and_ord_heatmap.png>
+This project was completed independently as part of the General Assembly Data Science Bootcamp (Project 2). The Ames Housing Dataset was created by Dean De Cock and is available via Kaggle. Post-bootcamp documentation, code standardization, and this README were produced in collaboration with Claude AI (Anthropic, 2025).
 
-So there is some strong colinearity! The features that correlate highly to each other seem obvious:
-* Fireplace quality and the number of fireplaces are related; homes with multiple fireplaces tend to maintain them better
-* Garage area and garage cars are colinear; more cars require more space
-* The garage and home tend to be built around the same year
-* The basement and first floor have nearly identical areas
-* Homes that have been more recently remodeled have higher quality across the board and many homes were never remodeled
-* Homes with higher quality kitchens also tend to have higher quality exteriors
-* A higher number of rooms above grade typically means that the living area above grade is also higher.
+---
 
-Let's plot the features that interact in pairs against each other and see what kind of relationship they have.
+## License
 
-<img src = ./images/potentially_collinear_features.png>
+MIT License. See [LICENSE](LICENSE) for details.
 
-A few takeaways here:
-* The first floor and basement areas are roughly colinear, so we will opt to include only the first floor area
-* The year the home and garage were built are also highly colinear, so we will opt to include only the year the home was built.
-* The living area above grade and the total number of rooms above grade are highly colinear as well, so we will opt to include on the living area above grade.
-* The remaining plots are all too sparse to call them colinear in any sense. Perhaps they will serve our model better as interactions. We will attempt to add interaction terms after running a model without interactions first.
-
-With this information in tow, let us redefine the set of columns we will use for our next model.
-
-<img src = ./images/num_and_ord_true_vs_predicted.png>
-
-We have some mild improvement on our preliminary model. Rather than an RMSE around \\$35,000, we now expect our Kaggle submission to score around an RMSE of \\$33,500. Once again, we can attribute about 80\% of the variability in the model to the training features, but the model is not overfit, since it performs comparably on the testing data and training data. We can confirm this visually as well.
-
-### Impact from Interaction Terms
-Before scaling the data, we'll define the interaction terms we proposed above. Perhaps our model will be more accurate with interactions between features that appear to have some level of correlation, but are not colinear.
-
-<img src = ./images/num_and_ord_with_interaction_true_vs_predicted.png>
-
-Once again, we have closed the gap a bit. This time, we expect our RMSE to be around \\$32,250. Our $R^2$ throughout the process has remained around 80\% on the training set. Interestingly enough, we have a bit of a rise this time on the testing set. Model performance is consistently increasing on the testing data.
-
-## Scaling - The Final Attempt
-Now we come to the final pre-processing step and perhaps the one procedure that may lead to great improvement in our predictive ability: scaling. We have mentioned a few times now that scaling appears to be necessary due to the curving tail on the right end of our plots comparing the true and predicted price values. In reality, the curve appears to be something like a square root and we believe this to be the case because the features included in our regression models are on such different scales. If we scale all of our features of interest using the `StandardScaler()`, we can renormalize and recenter, allowing the parameters of the model to adjust in a way that provides a "fairer" contribution from each feature. We apply the same procedure we learned in Lesson 304 - Feature Engineering, with some modification. To ensure that our testing data is not affecting our training data, we will perform a train-test split first, then transform the data.
-
-<img src = ./images/scaled_true_vs_predicted.png>
-
-Scaling appears to have made a slight amount of a difference, though not as much as we would have liked. Across all of our models, we have accounted for 80\% of the variability in the model with the features in the training set and consistently done better on the testing set. Were more time available, the next step would be to regularize using `LassoCV`.
-
-### Next Steps
-Though we did attempt it, we were unable to successfully one-hot encode the non-ordinal catagorical features of our dataset. We would like to consider the impact of some of the salient categorical variables in a future model. In addition, time constraints did not permit the use of regularization techniques, which would likely be the final step, particularly employing LASSO regularlization, which would allow us to enter all of the features in the dataset and pare them down through regularization. When regularizing, we would likely also lean on `PolynomialFeatures` to study the impact of a greater number of interactions between features and feature self-interactions.
+**Contact:** [GitHub @dmehta94](https://github.com/dmehta94) | [LinkedIn](https://www.linkedin.com/in/devalmehta94)
